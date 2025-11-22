@@ -1,5 +1,3 @@
-# utils/db.py
-
 import sqlite3
 from utils.config import DB_NAME
 
