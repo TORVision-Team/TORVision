@@ -1,0 +1,36 @@
+# data_collector/fetch_nodes.py
+
+import requests
+from utils.db import save_node, create_tables
+from utils.config import ONIONOO_BASE_URL
+
+def fetch_tor_nodes():
+    print("Fetching TOR nodes...")
+
+    response = requests.get(ONIONOO_BASE_URL)
+
+    if response.status_code != 200:
+        print("Failed to fetch")
+        return
+
+    data = response.json()
+    nodes = data.get("relays", [])
+
+    print(f"Fetched {len(nodes)} nodes")
+
+    for node in nodes:
+        mapped_node = {
+            "fingerprint": node.get("fingerprint"),
+            "nickname": node.get("nickname"),
+            "ip": node.get("or_addresses", [""])[0].split(":")[0],
+            "or_port": node.get("or_ports", [None])[0],
+            "dir_port": node.get("dir_port"),
+            "country": node.get("country"),
+            "bandwidth": node.get("bandwidth_rate"),
+            "last_seen": node.get("last_seen")
+        }
+        save_node(mapped_node)
+
+if __name__ == "__main__":
+    create_tables()
+    fetch_tor_nodes()
