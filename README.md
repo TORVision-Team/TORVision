@@ -1,23 +1,103 @@
-As the Forensic Engineer of this project, my role focuses on uncovering the story behind the data. Every log, every anomaly, every trace point left in the system is a potential clue and my responsibility is to study those clues, validate findings, and translate them into clear, actionable insights for the team.
+TORVision
+An Analytical System for TOR Node Correlation, Origin Prediction & Forensic Intelligence
 
-While other branches build, implement, and innovate, this branch ensures that nothing goes unnoticed. Whether it's analysing forensic logs, identifying unusual system behaviour, or verifying the integrity of collected evidence, this branch adds the essential “trust layer” to our entire workflow.
+TORVision is an advanced metadata-driven analysis platform designed to help investigators understand TOR relay behavior, identify likely entry/guard nodes, visualize network flows, and correlate forensic logs — without breaking TOR encryption.
 
-This Branch Covers:-
+The system uses public metadata, ML-based scoring, graph correlation, timeline replay, weather forecasting, and suspicious activity alerts to deliver actionable intelligence.
 
--> Collecting and examining forensic logs
+Key Features:-
+🔹 1. TOR Data Collection
 
--> Identifying patterns, anomalies, or suspicious activity
+Automatic extraction of TOR relay metadata using Onionoo API
 
--> Validating whether operations in other branches followed expected behaviour
+Periodic scheduled updates
 
--> Documenting findings in a clean, readable, investigation-style format
+Stores historical snapshots (for forecasting & trend analysis)
 
--> Helping the team make informed decisions backed by evidence
+🔹 2. Node Correlation Engine
 
-This Branch's Need:-
+Time-based matching of entry → middle → exit nodes
 
-In any collaborative system, especially those dealing with sensitive workflows, having strong forensic analysis ensures transparency, accountability, and reliability. This branch protects the project from overlooked issues and provides clarity when uncertainty arises.
+Similarity scoring based on timestamps, bandwidth & flags
 
-My Responsibility:-
+Graph-based correlation using NetworkX
 
-I handle the forensic report files stored under forensic_logs/, review them carefully, and maintain a consistent structure so the entire team can rely on the data without confusion. My work ensures that every discovery is well-explained, human-understandable, technically sound.
+🔹 3. ML-Based Origin Prediction
+
+Predicts likely entry/guard nodes
+
+Confidence scoring model (Decision Tree / RandomForest)
+
+Continuously improves as new data is fetched
+
+🔹 4. Visualization Dashboard
+
+Interactive relay map
+
+Network graph animation
+
+Timeline reconstruction
+
+Confidence meter display
+
+Forensic match overlay
+
+🔹 5. Forensic Log Integration
+
+Upload PCAP or network logs
+
+Extract suspicious IPs & timestamps
+
+Match against TOR relay database
+
+Highlight overlapping or suspicious nodes
+
+🔹 6. TOR Weather Forecasting ⭐ Unique Feature
+
+Predicts:
+
+Future number of exit nodes
+
+Country-wise activity trends
+
+Node stability probability
+
+Possible outages
+
+Example:
+“Forecast: Exit nodes in Europe likely to increase by 12% in next 4 hours.”
+
+🔹 7. Suspicious Activity Alerts
+
+The system automatically detects:
+
+Sudden drop in relay counts
+
+Country-based spikes
+
+Over-stable nodes (possible surveillance)
+
+Bandwidth anomalies
+
+
+System Workflow:-
+
+TOR Data Collector fetches live relay data
+
+Preprocessor normalizes timestamps & builds features
+
+Correlation Engine links entry → exit nodes
+
+ML Module calculates confidence score
+
+Weather Module predicts future TOR trends
+
+Alerts Module flags suspicious events
+
+Forensic Module overlays PCAP/log data
+
+Dashboard visualizes everything
+
+Report Generator exports final PDF
+Exit node bursts
+
