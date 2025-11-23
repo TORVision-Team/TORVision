@@ -1,0 +1,3 @@
+fingerprint,ip,first_seen,last_seen,country,flags,bandwidth_history,uptime_hours,is_exit,is_middle,country_code,bandwidth_norm
+ABC123,1.1.1.1,2025-01-10 10:00:00,2025-01-10 12:00:00,US,"Exit,Running","[200,300,250]",0,1,0,1,0
+DEF456,2.2.2.2,2025-01-10 09:45:00,2025-01-10 11:30:00,FR,"Guard,Running","[150,160,170]",0,0,0,0,0
