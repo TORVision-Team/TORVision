@@ -43,5 +43,5 @@ def main():
     df.to_csv(output_path, index=False)
     print(f"TOR nodes saved to {output_path}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()

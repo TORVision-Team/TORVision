@@ -1,8 +1,10 @@
 # run_similarity.py
+
 import os
 import pandas as pd
 from preprocessor.similarity import SimilarityEngine
 from utils.config import DATA_PATH
+
 
 def main():
     FEATURE_FILE = os.path.join(DATA_PATH, "engineered_output.csv")
@@ -22,7 +24,11 @@ def main():
         print("Engineered features file is empty.")
         return
 
-    print("\nLoaded engineered features (preview):")
+    # LIMIT nodes for performance & demo safety
+    MAX_NODES = 250
+    df = df.head(MAX_NODES)
+
+    print(f"\nLoaded engineered features (limited to {len(df)} nodes):")
     print(df.head())
 
     # Initialize similarity engine
@@ -37,5 +43,6 @@ def main():
     print(f"\nSimilarity matrix saved to: {OUTPUT_FILE}")
     print("Similarity computation completed successfully")
 
-if _name_ == "_main_":
+
+if __name__ == "__main__":
     main()

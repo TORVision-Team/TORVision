@@ -1,28 +1,25 @@
-app.py : import streamlit as st
-import pandas as pd
-import numpy as np
 import os
 import sys
+
+# ---------------- FIX PYTHON PATH (VERY IMPORTANT) ----------------
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+# -----------------------------------------------------------------
+
+import streamlit as st
+import pandas as pd
+import numpy as np
 from utils.config import DATA_PATH
 
-# Make sure Python can find your project modules
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(_file_)))
-sys.path.append(PROJECT_ROOT)
-
-# If you need them later, you can import your modules like this:
-# from preprocessor.feature_engineering import FeatureEngineer
-# from preprocessor.similarity import SimilarityEngine
-# from forensic_logs.pcap_parser import PcapParser
-# from forensic_logs.log_matcher import LogMatcher
-
+# ---------------- STREAMLIT CONFIG ----------------
 st.set_page_config(
     page_title="TORVision Dashboard",
     layout="wide"
 )
 
-st.title(" TORVision – ML-Driven TOR Analysis Dashboard")
+st.title("TORVision : ML-Driven TOR Analysis Dashboard")
 
-# ---------- Helper functions to load ML outputs ----------
+# ---------------- Helper functions ----------------
 DATA_DIR = DATA_PATH
 
 def load_engineered():
@@ -46,8 +43,8 @@ def load_sample_pcap():
         return pd.DataFrame(data)
     return None
 
-# ---------- Sidebar Navigation ----------
-st.sidebar.title(" Navigation")
+# ---------------- Sidebar ----------------
+st.sidebar.title("Navigation")
 page = st.sidebar.radio(
     "Go to",
     [
@@ -58,93 +55,105 @@ page = st.sidebar.radio(
     ]
 )
 
-# ================== PAGE: OVERVIEW ==================
+# ================== OVERVIEW ==================
 if page == "Overview":
     st.header("System Overview")
 
     df = load_engineered()
-
     if df is None:
-        st.warning("engineered_output.csv not found in data/samples. Run your ML pipeline first.")
+        st.warning("engineered_output.csv not found. Run ML pipeline first.")
     else:
         col1, col2, col3 = st.columns(3)
 
-        total_nodes = len(df)
-        exit_nodes = int(df["is_exit"].sum()) if "is_exit" in df.columns else 0
-        middle_nodes = int(df["is_middle"].sum()) if "is_middle" in df.columns else 0
-
         with col1:
-            st.metric("Total Nodes", total_nodes)
+            st.metric("Total Nodes", len(df))
         with col2:
-            st.metric("Exit Nodes", exit_nodes)
+            st.metric("Exit Nodes", int(df["is_exit"].sum()) if "is_exit" in df else 0)
         with col3:
-            st.metric("Middle Nodes", middle_nodes)
+            st.metric("Middle Nodes", int(df["is_middle"].sum()) if "is_middle" in df else 0)
 
-        st.subheader("Bandwidth (normalized) distribution")
         if "bandwidth_norm" in df.columns:
+            st.subheader("Bandwidth Distribution")
             st.line_chart(df["bandwidth_norm"])
-        else:
-            st.info("bandwidth_norm column not found in engineered_output.csv")
 
-# ================== PAGE: ENGINEERED FEATURES ==================
+# ================== ENGINEERED FEATURES ==================
 elif page == "Engineered Features":
-    st.header("Engineered Features (from ML pipeline)")
+    st.header("Engineered Features")
 
     df = load_engineered()
     if df is None:
-        st.warning("engineered_output.csv not found in data/samples.")
+        st.warning("No engineered features found.")
     else:
         st.dataframe(df, use_container_width=True)
 
-# ================== PAGE: SIMILARITY ==================
+# ================== SIMILARITY MATRIX ==================
 elif page == "Similarity Matrix":
-    st.header("Node Similarity Matrix")
+    st.header("Node Similarity Analysis")
 
     sim_df = load_similarity()
     eng_df = load_engineered()
 
     if sim_df is None or eng_df is None:
-        st.warning("similarity_matrix.csv and/or engineered_output.csv not found.")
+        st.warning("Similarity data not found.")
     else:
         sim_values = sim_df.values.astype(float)
-        np.fill_diagonal(sim_values, 0.0)  # Ignore self-similarity
+        rows, cols = sim_values.shape
 
-        # Most similar node pair
-        max_idx = np.unravel_index(sim_values.argmax(), sim_values.shape)
+        # Remove self-similarity safely
+        for i in range(min(rows, cols)):
+            sim_values[i, i] = 0
+
+        # ---- SAFE max similarity extraction ----
+        max_idx = np.unravel_index(np.argmax(sim_values), sim_values.shape)
         score = sim_values[max_idx]
 
-        node1_fp = eng_df.iloc[max_idx[0]]["fingerprint"] if "fingerprint" in eng_df.columns else f"Node {max_idx[0]}"
-        node2_fp = eng_df.iloc[max_idx[1]]["fingerprint"] if "fingerprint" in eng_df.columns else f"Node {max_idx[1]}"
+        r, c = max_idx
 
-        st.subheader("Most similar node pair")
-        st.success(f"{node1_fp}** ↔ *{node2_fp}*  (similarity score: {score:.3f})")
+        # Guard against mismatch with engineered dataframe
+        if r < len(eng_df) and c < len(eng_df):
+            n1 = eng_df.iloc[r]["fingerprint"]
+            n2 = eng_df.iloc[c]["fingerprint"]
+        else:
+            n1 = f"Index {r}"
+            n2 = f"Index {c}"
 
-        # Summary stats
+        # ---- UI OUTPUT ----
+        st.subheader("Most Similar Node Pair")
+        st.success(f"{n1} ↔ {n2}")
+        st.metric("Similarity Score", f"{score:.3f}")
+
         st.subheader("Similarity Analysis Summary")
-        st.metric("Total Nodes Analyzed", len(eng_df))
-        st.metric("Similarity Matrix Size", f"{sim_df.shape[0]} × {sim_df.shape[1]}")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Total Nodes Analyzed", len(eng_df))
+        with col2:
+            st.metric("Similarity Matrix Size", f"{rows} × {cols}")
+
         st.info(
-            "The full similarity matrix is intentionally not displayed due to size. "
-            "High-risk correlations are extracted and analyzed instead."
+            f"Similarity computed on a subset of {min(rows, cols)} nodes for scalability."
         )
 
-        # Optional: Top 5 most similar pairs
-        flat = [(i, j, sim_values[i][j]) for i in range(len(sim_values)) for j in range(i+1, len(sim_values))]
+        # -------- Top 5 Most Similar Node Pairs (SAFE) --------
+        flat = []
+        for i in range(rows):
+            for j in range(cols):
+                if i != j:  # ignore self-similarity
+                    flat.append((i, j, sim_values[i][j]))
+
         top_k = sorted(flat, key=lambda x: x[2], reverse=True)[:5]
 
         st.subheader("Top 5 Most Similar Node Pairs")
         for i, j, score in top_k:
-            n1 = eng_df.iloc[i]["fingerprint"]
-            n2 = eng_df.iloc[j]["fingerprint"]
-            st.write(f" {n1} ↔ {n2} — similarity: *{score:.3f}*")
+            n1 = eng_df.iloc[i]["fingerprint"] if i < len(eng_df) else f"Index {i}"
+            n2 = eng_df.iloc[j]["fingerprint"] if j < len(eng_df) else f"Index {j}"
+            st.write(f"**{n1}** ↔ **{n2}** — similarity: *{score:.3f}*")
 
-# ================== PAGE: FORENSIC SAMPLE ==================
+# ================== FORENSIC ==================
 elif page == "Forensic Sample (PCAP JSON)":
-    st.header("Forensic – Parsed PCAP JSON")
+    st.header("Forensic – Parsed PCAP Data")
 
     pcap_df = load_sample_pcap()
     if pcap_df is None:
-        st.warning("sample_pcap.json not found in data/samples.")
+        st.warning("PCAP data not found.")
     else:
         st.dataframe(pcap_df, use_container_width=True)
-        #st.info("This is just a sample view. Your forensic module can integrate deeper matching later.")
