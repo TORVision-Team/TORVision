@@ -2,7 +2,7 @@ import pandas as pd
 
 class FeatureEngineer:
 
-    def __init__(self):
+    def _init_(self):
         pass  # No data needed during initialization
 
     def transform(self, df):

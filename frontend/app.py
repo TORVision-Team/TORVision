@@ -1,4 +1,4 @@
-import streamlit as st
+app.py : import streamlit as st
 import pandas as pd
 import numpy as np
 import os
@@ -6,7 +6,7 @@ import sys
 from utils.config import DATA_PATH
 
 # Make sure Python can find your project modules
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(_file_)))
 sys.path.append(PROJECT_ROOT)
 
 # If you need them later, you can import your modules like this:
@@ -38,9 +38,12 @@ def load_similarity():
     return None
 
 def load_sample_pcap():
-    path = os.path.join(DATA_DIR, "real_pcap.json")
+    path = os.path.join(DATA_DIR, "sample_pcap.json")
     if os.path.exists(path):
-        return pd.read_json(path)
+        import json
+        with open(path, "r") as f:
+            data = json.load(f)
+        return pd.DataFrame(data)
     return None
 
 # ---------- Sidebar Navigation ----------
@@ -103,24 +106,40 @@ elif page == "Similarity Matrix":
     if sim_df is None or eng_df is None:
         st.warning("similarity_matrix.csv and/or engineered_output.csv not found.")
     else:
-        st.write("Raw similarity matrix:")
-        st.dataframe(sim_df, use_container_width=True)
-
-        # Find highest similarity pair (excluding diagonal)
         sim_values = sim_df.values.astype(float)
-        np.fill_diagonal(sim_values, 0.0)
+        np.fill_diagonal(sim_values, 0.0)  # Ignore self-similarity
 
+        # Most similar node pair
         max_idx = np.unravel_index(sim_values.argmax(), sim_values.shape)
         score = sim_values[max_idx]
 
         node1_fp = eng_df.iloc[max_idx[0]]["fingerprint"] if "fingerprint" in eng_df.columns else f"Node {max_idx[0]}"
         node2_fp = eng_df.iloc[max_idx[1]]["fingerprint"] if "fingerprint" in eng_df.columns else f"Node {max_idx[1]}"
 
-        st.subheader("Most similar node pair (by ML similarity)")
-        st.success(f"**{node1_fp}** ↔ **{node2_fp}**  (similarity score: {score:.3f})")
+        st.subheader("Most similar node pair")
+        st.success(f"{node1_fp}** ↔ *{node2_fp}*  (similarity score: {score:.3f})")
+
+        # Summary stats
+        st.subheader("Similarity Analysis Summary")
+        st.metric("Total Nodes Analyzed", len(eng_df))
+        st.metric("Similarity Matrix Size", f"{sim_df.shape[0]} × {sim_df.shape[1]}")
+        st.info(
+            "The full similarity matrix is intentionally not displayed due to size. "
+            "High-risk correlations are extracted and analyzed instead."
+        )
+
+        # Optional: Top 5 most similar pairs
+        flat = [(i, j, sim_values[i][j]) for i in range(len(sim_values)) for j in range(i+1, len(sim_values))]
+        top_k = sorted(flat, key=lambda x: x[2], reverse=True)[:5]
+
+        st.subheader("Top 5 Most Similar Node Pairs")
+        for i, j, score in top_k:
+            n1 = eng_df.iloc[i]["fingerprint"]
+            n2 = eng_df.iloc[j]["fingerprint"]
+            st.write(f" {n1} ↔ {n2} — similarity: *{score:.3f}*")
 
 # ================== PAGE: FORENSIC SAMPLE ==================
-elif page == "Real Forensics (PCAP JSON)":
+elif page == "Forensic Sample (PCAP JSON)":
     st.header("Forensic – Parsed PCAP JSON")
 
     pcap_df = load_sample_pcap()

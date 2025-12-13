@@ -18,7 +18,7 @@ FETCH_INTERVAL_HOURS = 6
 # =========================
 # PATH CONFIG
 # =========================
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(_file_)))
 
 REAL_DATA_PATH = os.path.join(BASE_DIR, "data", "real")
 SYNTHETIC_DATA_PATH = os.path.join(BASE_DIR, "data", "samples")

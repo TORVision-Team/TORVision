@@ -37,5 +37,5 @@ def main():
     print(f"\nSimilarity matrix saved to: {OUTPUT_FILE}")
     print("Similarity computation completed successfully")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
