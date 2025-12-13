@@ -2,16 +2,11 @@
 import requests
 import pandas as pd
 import os
-from utils.config import (
-    ONIONOO_BASE_URL,
-    DATA_PATH,
-    TOR_NODES_FILE,
-    ENABLE_FALLBACK,
-    SYNTHETIC_DATA_PATH
-)
+from .config import ONIONOO_BASE_URL, DATA_PATH, TOR_NODES_FILE
 
 def fetch_live_tor_nodes():
-    print("Fetching live Tor nodes from Onionoo...")
+    """Fetch live TOR nodes from Onionoo API"""
+    print("Fetching live Tor nodes from Onionoo..")
     url = f"{ONIONOO_BASE_URL}?type=relay&running=true"
     response = requests.get(url, timeout=15)
     response.raise_for_status()
@@ -35,26 +30,18 @@ def fetch_live_tor_nodes():
 
     return pd.DataFrame(records)
 
-def fallback_synthetic():
-    print("[!] Falling back to synthetic dataset")
-    fallback_file = os.path.join(SYNTHETIC_DATA_PATH, TOR_NODES_FILE)
-    if not os.path.exists(fallback_file):
-        raise FileNotFoundError("Synthetic fallback dataset not found")
-    return pd.read_csv(fallback_file)
-
 def main():
     try:
         df = fetch_live_tor_nodes()
     except Exception as e:
         print(f"Live fetch failed: {e}")
-        if ENABLE_FALLBACK:
-            df = fallback_synthetic()
-        else:
-            raise
+        print("Cannot continue without live TOR data. Exiting...")
+        return
 
+    # Save real TOR nodes to DATA_PATH
     output_path = os.path.join(DATA_PATH, TOR_NODES_FILE)
     df.to_csv(output_path, index=False)
-    print(f"Tor nodes saved to {output_path}")
+    print(f"TOR nodes saved to {output_path}")
 
 if __name__ == "__main__":
     main()

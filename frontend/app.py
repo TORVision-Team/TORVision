@@ -17,7 +17,6 @@ sys.path.append(PROJECT_ROOT)
 
 st.set_page_config(
     page_title="TORVision Dashboard",
-    page_icon="🧅",
     layout="wide"
 )
 
@@ -39,7 +38,7 @@ def load_similarity():
     return None
 
 def load_sample_pcap():
-    path = os.path.join(DATA_DIR, "sample_pcap.json")
+    path = os.path.join(DATA_DIR, "real_pcap.json")
     if os.path.exists(path):
         return pd.read_json(path)
     return None
@@ -121,12 +120,12 @@ elif page == "Similarity Matrix":
         st.success(f"**{node1_fp}** ↔ **{node2_fp}**  (similarity score: {score:.3f})")
 
 # ================== PAGE: FORENSIC SAMPLE ==================
-elif page == "Forensic Sample (PCAP JSON)":
-    st.header("Forensic Sample – Parsed PCAP JSON")
+elif page == "Real Forensics (PCAP JSON)":
+    st.header("Forensic – Parsed PCAP JSON")
 
     pcap_df = load_sample_pcap()
     if pcap_df is None:
         st.warning("sample_pcap.json not found in data/samples.")
     else:
         st.dataframe(pcap_df, use_container_width=True)
-        st.info("This is just a sample view. Your forensic module can integrate deeper matching later.")
+        #st.info("This is just a sample view. Your forensic module can integrate deeper matching later.")

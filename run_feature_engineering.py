@@ -1,28 +1,22 @@
 import pandas as pd
 from preprocessor.feature_engineering import FeatureEngineer
 from preprocessor.similarity import SimilarityEngine
+from utils.config import DATA_PATH, TOR_NODES_FILE
 
-# Load sample data
-df = pd.read_csv("data/samples/sample_tor_nodes.csv")
+# Load TOR nodes (REAL or SYNTHETIC based on DATA_MODE)
+input_file = f"{DATA_PATH}/{TOR_NODES_FILE}"
+print(f"Loading TOR nodes from: {input_file}")
+df = pd.read_csv(input_file)
 
-# Run feature engineering
+if df.empty:
+    print("No TOR nodes found. Run fetch_nodes.py first.")
+    exit()
+
+# Feature engineering
 fe = FeatureEngineer()
 features = fe.transform(df)
 
-print("=== Engineered Features ===")
-print(features.head())
-
-# Save output
-features.to_csv("data/samples/engineered_output.csv", index=False)
-
-# Run similarity matrix
-sim_engine = SimilarityEngine()
-sim_matrix = sim_engine.calculate(features)
-
-print("\n=== Similarity Matrix (shape) ===")
-print(sim_matrix.shape)
-
-# Save similarity matrix
-pd.DataFrame(sim_matrix).to_csv("data/samples/similarity_matrix.csv", index=False)
-
-print("\nProcessing Complete!")
+# Save engineered features
+features_file = f"{DATA_PATH}/engineered_output.csv"
+features.to_csv(features_file, index=False)
+print(f"Engineered features saved to: {features_file}")
