@@ -1,4 +1,4 @@
-forensic_pipeline.py : # forensic_pipeline.py
+# forensic_pipeline.py
 import pandas as pd
 import os
 from utils.config import DATA_PATH, TOR_NODES_FILE
@@ -18,5 +18,5 @@ def run_forensics():
     print(f"Loaded {len(tor_nodes)} Tor nodes for analysis")
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     run_forensics()
