@@ -1,6 +1,5 @@
 import streamlit as st
 import plotly.graph_objects as go
-
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(layout="wide")
 st.title("TOR Timeline Replay")
